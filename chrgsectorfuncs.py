@@ -423,3 +423,54 @@ def dict_transpose(thedict, chrglist, D):
             newdict[(tr, tl+x-tr, tl)] = thedict[(tl, tx, tr)]
     return newdict
 
+def getlists(O, Top, Bot, D):
+    """
+    Returns the good values of charge, vectors, charge pairs, and pair shapes.
+
+    Paramters
+    ---------
+    O : A tuple of lists of charges and charge pairs.
+    Top : The top part of the Q matrix.
+    Bot : The bottom part of the Q matrix.
+    D : The absolute value of the largest Bessel used.
+
+    Returns
+    -------
+    clist : A list of the charges that made it through the slection.
+    vlist : A list of vectors that made is through the selection.
+    idxlist : The pairs of charges that match with the vectors and charges.
+    slist : A list of the sizes of the charge pairs.
+
+    """
+    Dbond = 2*D+1
+    clist = list(np.zeros((Dbond)))  # initialize lists to be filled                                                
+    elist = list(np.zeros((Dbond)))
+    vlist = list(np.zeros((Dbond)))
+    idxlist = list(np.full((Dbond), 0.1))
+    slist = list(np.zeros((Dbond)))
+    globaltime0 = time()
+    for c, l in O:              # loop through charges and pairs                                                    
+        Q, sizes = getQ(Top, Bot, l, D) # make Q and the pair sizes                                             
+        e, v = blockeev(Q, l)           # find the eigenvalues and vectors                                      
+        idx = e.argsort()
+        e = e[idx]
+        v = v[:, idx].T
+        for i in range(len(e)):
+            if (e[i] >= min(elist)): # fill the lists with the best e and v                                         
+                ii = np.argmin(elist)
+                elist.pop(ii)
+                elist.append(e[i])
+                idxlist.pop(ii)
+                idxlist.append(l)
+                clist.pop(ii)
+                clist.append(c)
+                vlist.pop(ii)
+                vlist.append(v[i])
+                slist.pop(ii)
+                slist.append(sizes)
+            else:
+                pass
+    globaltime1 = time()
+    if (rank == 0):
+        print "total Q and eigs time =", (globaltime1-globaltime0)
+    return clist, vlist, idxlist, slist
