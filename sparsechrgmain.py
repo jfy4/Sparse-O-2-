@@ -75,7 +75,7 @@ for i in range(nit):
     # if (csf.rank == 0):
     #     print "total Q and eigs time =", (globaltime1-globaltime0)
 
-    clist, vlist, idxlist, slist = getlists(O, Top, Bot, D)
+    clist, vlist, idxlist, slist = csf.getlists(O, Top, Bot, D)
     tempcass = csf.cass(clist, vlist, idxlist, slist) # puts the charges, vectors, pairs, and shapes together
     U = csf.getU(tempcass)                            # gets the U for updating
     cidladded = csf.allcidl(idxlist)                  # makes a list of unique pairs
@@ -85,7 +85,7 @@ for i in range(nit):
     if (csf.rank == 0):
         timelist.append(lt2-lt1)
     initchrg = list(set(clist)) # makes a new list of running charges
-    runchrglist.append(initchrg) # appends it to the list of running charges
+    runchrglist.append(clist) # appends it to the list of running charges
     norm = csf.tensor_norm(T, initchrg, D)
     if (csf.rank == 0):
         print norm
@@ -93,10 +93,10 @@ for i in range(nit):
     csf.normalize(T, norm)
     csf.normalize(B, norm)
 
-if (csf.rank == 0):
+# if (csf.rank == 0):
     # np.save("./timelist" + str(D) + ".npy", timelist)
-    np.save("./chrghistdata_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
-            np.asarray(runchrglist))
+    # np.save("./chrghistdata_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
+    #         np.asarray(runchrglist))
 del(T, B, U, Top, Bot)
 
 

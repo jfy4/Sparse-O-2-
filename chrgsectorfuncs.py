@@ -186,11 +186,12 @@ def getQ(top, bot, cvals, D):
                 part += np.reshape(temp3, (t1s[0]*t2s[0], t1s[1]*t2s[1]))
             temp.append(part)
         temp = np.vstack(temp)
-        if ((ttr, btr) == calvs[0]):
+        if ((ttr, btr) == cvals[0]):
             block = temp
         else:
             block = np.hstack((block, temp))
         sizes.append((t1s[1], t2s[1]))
+    # I don't even allreduce here, something is wrong.
     evals, evecs = np.linalg.eigh(block)
     time1 = time()
     return evals, evecs, sizes
@@ -327,12 +328,12 @@ def getU(vecs):
         e = 0
         for i, j in zip(vecs[c][1], vecs[c][2]):
             e += prod(j)
-            xx = (vecs[c][0][:,s:e]).shape
-            # xx = np.transpose(vecs[c][0][:,s:e]).shape
-            #print xx
-            #print (j + (xx[1],))
-            # cvdict[i] = np.reshape(np.transpose(vecs[c][0][:,s:e]), (j + (xx[1],)))
-            cvdict[i] = np.reshape(np.transpose(vecs[c][0][:,s:e]), (j + (xx[0],)))
+            # xx = (vecs[c][0][:,s:e]).shape
+            xx = np.transpose(vecs[c][0][:,s:e]).shape
+            # print xx
+            # print (j + (xx[1],))
+            cvdict[i] = np.reshape(np.transpose(vecs[c][0][:,s:e]), (j + (xx[1],)))
+            # cvdict[i] = np.reshape(np.transpose(vecs[c][0][:,s:e]), (j + (xx[0],)))
             s = e
     time1 = time()
     if (rank == 0):
