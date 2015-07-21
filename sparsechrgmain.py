@@ -30,7 +30,7 @@ if (csf.rank == 0):
 norm = csf.tensor_norm(T, initchrg, D)
 if (csf.rank == 0):
     print norm
-csf.normalize(T, norm)
+csf.normalize(T, norm)          # normalize the tensors
 csf.normalize(B, norm)
 timelist = []
 
@@ -43,38 +43,6 @@ for i in range(nit):
     O = zip(charges, cidl)
     Top = csf.gettop(T, initchrg, D) # make the top of Q
     Bot = csf.getbot(B, initchrg, D) # make the bottom of Q
-
-    # clist = list(np.zeros((Dbond)))  # initialize lists to be filled
-    # elist = list(np.zeros((Dbond)))
-    # vlist = list(np.zeros((Dbond)))
-    # idxlist = list(np.full((Dbond), 0.1))
-    # slist = list(np.zeros((Dbond)))
-    # globaltime0 = time()
-    # for c, l in O:              # loop through charges and pairs
-    #     Q, sizes = csf.getQ(Top, Bot, l, D) # make Q and the pair sizes
-    #     e, v = csf.blockeev(Q, l)           # find the eigenvalues and vectors
-    #     idx = e.argsort()
-    #     e = e[idx]
-    #     v = v[:, idx].T
-    #     for i in range(len(e)):
-    #         if (e[i] >= min(elist)): # fill the lists with the best e and v
-    #             ii = np.argmin(elist)
-    #             elist.pop(ii)
-    #             elist.append(e[i])    
-    #             idxlist.pop(ii)
-    #             idxlist.append(l)
-    #             clist.pop(ii)
-    #             clist.append(c)
-    #             vlist.pop(ii)
-    #             vlist.append(v[i])
-    #             slist.pop(ii)
-    #             slist.append(sizes)
-    #         else:
-    #             pass
-    # globaltime1 = time()
-    # if (csf.rank == 0):
-    #     print "total Q and eigs time =", (globaltime1-globaltime0)
-
     clist, vlist, idxlist, slist = csf.getlists(O, Top, Bot, D)
     tempcass = csf.cass(clist, vlist, idxlist, slist) # puts the charges, vectors, pairs, and shapes together
     U = csf.getU(tempcass)                            # gets the U for updating
