@@ -93,10 +93,10 @@ for i in range(nit):
     csf.normalize(T, norm)
     csf.normalize(B, norm)
 
-if (csf.rank == 0):
+# if (csf.rank == 0):
     # np.save("./timelist" + str(D) + ".npy", timelist)
-    np.save("./chrghistdata_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
-            np.asarray(runchrglist))
+    # np.save("./chrghistdata_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
+    #         np.asarray(runchrglist))
 del(T, B, U, Top, Bot)
 
 

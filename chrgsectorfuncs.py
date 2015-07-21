@@ -165,16 +165,17 @@ def getQ(top, bot, cvals, D):
             of the Q matrix block.  Used to build the U tensor dictionary.
 
     """
-    q = {}
     sizes = []
     time0 = time()
     for ttr, btr in cvals:
+        temp = []
         for ttl, btl in cvals:
             rmin = max(-D, -D+ttr-ttl, -D+btl-btr)
             rmax = min(D, D+ttr-ttl, D+btl-btr)+1
             effDb = rmax-rmin
             Dmin = ((rank*(effDb))/size)+rmin
             Dmax = (((rank+1)*(effDb))/size)+rmin            
+            part = 0.0
             for xp in range(Dmin, Dmax):
                 t1s = top[ttl, xp, ttr].shape
                 t2s = bot[btr, xp, btl].shape
@@ -182,14 +183,19 @@ def getQ(top, bot, cvals, D):
                 temp2 = np.reshape(bot[btr, xp, btl], (t2s[0]*t2s[1], t2s[2]*t2s[3]))
                 temp3 = np.dot(temp1, np.transpose(temp2))
                 temp3 = np.transpose(np.reshape(temp3, (t1s[0], t1s[1], t2s[0], t2s[1])), (0,2,1,3))
-                try:
-                    q[ttr, btr, ttl] += np.reshape(temp3, (t1s[0]*t2s[0], t1s[1]*t2s[1]))
-                except KeyError:
-                    q[ttr, btr, ttl] = np.reshape(temp3, (t1s[0]*t2s[0], t1s[1]*t2s[1]))
+                part += np.reshape(temp3, (t1s[0]*t2s[0], t1s[1]*t2s[1]))
+            temp.append(part)
+        temp = np.vstack(temp)
+        if ((ttr, btr) == cvals[0]):
+            block = temp
+        else:
+            block = np.hstack((block, temp))
         sizes.append((t1s[1], t2s[1]))
-    the_result = comm.allreduce(q, op=dictSumOp)
+    # I don't even allreduce here, something is wrong.
+    comm.Allreduce(MPI.IN_PLACE, block, op=MPI.SUM)
+    evals, evecs = np.linalg.eigh(block)
     time1 = time()
-    return the_result, sizes
+    return evals, evecs, sizes
 
 def blockeev(qblock, cvals):
     """
@@ -323,12 +329,12 @@ def getU(vecs):
         e = 0
         for i, j in zip(vecs[c][1], vecs[c][2]):
             e += prod(j)
-            xx = (vecs[c][0][:,s:e]).shape
-            # xx = np.transpose(vecs[c][0][:,s:e]).shape
-            #print xx
-            #print (j + (xx[1],))
-            # cvdict[i] = np.reshape(np.transpose(vecs[c][0][:,s:e]), (j + (xx[1],)))
-            cvdict[i] = np.reshape(np.transpose(vecs[c][0][:,s:e]), (j + (xx[0],)))
+            # xx = (vecs[c][0][:,s:e]).shape
+            xx = np.transpose(vecs[c][0][:,s:e]).shape
+            # print xx
+            # print (j + (xx[1],))
+            cvdict[i] = np.reshape(np.transpose(vecs[c][0][:,s:e]), (j + (xx[1],)))
+            # cvdict[i] = np.reshape(np.transpose(vecs[c][0][:,s:e]), (j + (xx[0],)))
             s = e
     time1 = time()
     if (rank == 0):
@@ -450,8 +456,7 @@ def getlists(O, Top, Bot, D):
     slist = list(np.zeros((Dbond)))
     globaltime0 = time()
     for c, l in O:              # loop through charges and pairs                                                    
-        Q, sizes = getQ(Top, Bot, l, D) # make Q and the pair sizes                                             
-        e, v = blockeev(Q, l)           # find the eigenvalues and vectors                                      
+        e, v, sizes = getQ(Top, Bot, l, D) # make Q and the pair sizes                                             
         idx = e.argsort()
         e = e[idx]
         v = v[:, idx].T
