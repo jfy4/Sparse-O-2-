@@ -1,7 +1,7 @@
 #!/anaconda/bin/python
 
 import numpy as np
-from math import exp
+from math import exp, expm1
 # np.set_printoptions(suppress=True, linewidth=200)
 from itertools import product, combinations_with_replacement, imap
 from scipy.special import iv
@@ -51,7 +51,10 @@ def tensorgen(D, beta, mu):
     tbot = {}
     time0 = time()
     Is = np.sqrt([iv(a, beta) for a in range(-D, D+1)])
-    It = np.sqrt([iv(a, beta)*exp(a*mu) for a in range(-D, D+1)])
+    # expl = np.exp([a*mu for a in range(-D, D+1)])
+    # It = np.array([iv(a, beta) for a in range(-D, D+1)])
+    # It = np.sqrt(It*expl)
+    It = np.sqrt([iv(a, beta)*(expm1(a*mu)+1) for a in range(-D, D+1)])
     for t, x in product(range(-D, D+1), repeat=2):
         for tp in range(max([-D, t+x-D]), min([D, t+x+D])+1):
             ttop[(t, x, tp)] = np.array([[[[Is[t+D]*Is[tp+D]*It[x+D]*It[t+x-tp+D]]]]])
