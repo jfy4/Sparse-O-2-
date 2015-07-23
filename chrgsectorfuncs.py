@@ -46,6 +46,14 @@ def tensorgen(D, beta, mu):
     dict : A dictionary with the nonzero elements of a tensor that would
            have been made using four indicies, now parameterized by three.
 
+    Notes
+    -----
+    * The sub-tensor is stored left, right, up, down corresponding to t, t', x, x'.
+    * That is the contraction is done along the space axis leaving the time legs open.
+    * The global top tensor indices are stored left, up, right corresponding to t, x, t'.
+    * The global bottom tensor indices are stored right, down, left corresponding to
+      t', x', t.
+
     """
     ttop = {}
     tbot = {}
@@ -362,6 +370,11 @@ def update(ttop, tbot, udict, cidladded, D):
     dict : A dictionary parameterizing the updated T tensor.  It is parameterized
            using three charge values again which imply the fourth.
 
+    Notes
+    -----
+    * The returned tensors are stored in the same order and manner as the original
+      generated tensor.
+
     """
     topret = {}
     botret = {}
@@ -482,3 +495,17 @@ def getlists(O, Top, Bot, D):
     if (rank == 0):
         print "total Q and eigs time =", (globaltime1-globaltime0)
     return clist, vlist, idxlist, slist
+
+def maketm(ctdict, chrglist, D):
+    for t in chrglist:
+        temp = []
+        for tp in chrglist:
+            part = 0.0
+            for x in range(max(-D, -D+tp-t), min(D, D+tp-t)+1):
+                part += np.einsum('ijaa', ctdict[t, x, tp])
+            temp.append(part)
+        if (t == chrglist[0]):
+            mat = np.hstack(temp)
+        else:
+            mat = np.vstack((mat, np.hstack(temp)))
+    return mat

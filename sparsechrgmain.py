@@ -61,10 +61,19 @@ for i in range(nit):
     csf.normalize(T, norm)
     csf.normalize(B, norm)
 
-# if (csf.rank == 0):
+TM = csf.maketm(T, initchrg, D) # makes a transfer matrix out of T
+TM = 0.5*(TM + TM.T) # forces it to be Hermitian even though it should already be.
+spec = np.linalg.eigvalsh(TM)   # finds the transfer matrix eigenvalues
+spec = np.sort(spec)[::-1]
+spec = spec/spec[0]
+spec = -1.0*np.log(spec)        # converts to the actual energy spectra
+
+if (csf.rank == 0):
     # np.save("./timelist" + str(D) + ".npy", timelist)
     # np.save("./chrghistdata_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
     #         np.asarray(runchrglist))
+    np.save("./spectra_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
+            spec)
 del(T, B, U, Top, Bot)
 
 
