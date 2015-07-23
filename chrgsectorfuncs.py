@@ -194,7 +194,6 @@ def getQ(top, bot, cvals, D):
         else:
             block = np.hstack((block, temp))
         sizes.append((t1s[1], t2s[1]))
-    # I don't even allreduce here, something is wrong.
     comm.Allreduce(MPI.IN_PLACE, block, op=MPI.SUM)
     evals, evecs = np.linalg.eigh(block)
     time1 = time()

@@ -24,6 +24,7 @@ if (csf.rank == 0):
 runchrglist = []                # an empty list to fill with the running charges
 initchrg = range(-D, D+1)       # the initial running charges
 runchrglist.append(initchrg)    # append the running charges
+totalgtime0 = time()             # begin total timing
 T, B = csf.tensorgen(D, beta, mu) # generate the initial tensors
 if (csf.rank == 0):
     print "partition function =", csf.tensor_trace(T, initchrg, D)
@@ -61,10 +62,12 @@ for i in range(nit):
     csf.normalize(T, norm)
     csf.normalize(B, norm)
 
-# if (csf.rank == 0):
+totalgtime1 = time()            # end total timing
+if (csf.rank == 0):
+    print "total iteration time =", (totalgtime1-totalgtime0)
     # np.save("./timelist" + str(D) + ".npy", timelist)
-    # np.save("./chrghistdata_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
-    #         np.asarray(runchrglist))
+    np.save("./chrghistdata_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
+            np.asarray(runchrglist))
 del(T, B, U, Top, Bot)
 
 
