@@ -26,6 +26,7 @@ initchrg = range(-D, D+1)       # the initial running charges
 runchrglist.append(initchrg)    # append the running charges
 T, B = csf.tensorgen(D, beta, mu) # generate the initial tensors
 if (csf.rank == 0):
+    timeg0 = time()
     print "partition function =", csf.tensor_trace(T, initchrg, D)
 norm = csf.tensor_norm(T, initchrg, D)
 if (csf.rank == 0):
@@ -69,9 +70,11 @@ spec = spec/spec[0]
 spec = -1.0*np.log(spec)        # converts to the actual energy spectra
 
 if (csf.rank == 0):
+    timeg1 = time()
+    print "total time = " + str((timeg1-timeg0)/60) + " min"
     # np.save("./timelist" + str(D) + ".npy", timelist)
-    # np.save("./chrghistdata_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
-    #         np.asarray(runchrglist))
+    np.save("./chrghistdata_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
+            np.asarray(runchrglist))
     np.save("./spectra_D" + argv[1] + "_b" + argv[2] + "_m" + argv[3] + "_L" + argv[4] + ".npy",
             spec)
 del(T, B, U, Top, Bot)
